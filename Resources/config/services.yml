@@ -4,8 +4,6 @@ parameters:
     magento.collector.class:      Smalot\MagentoBundle\DataCollector\MagentoDataCollector
     magento.logger.class:         Smalot\MagentoBundle\Logger\MagentoLogger
 
-    magento.profiler.template:    MagentoBundle:Collector:profiler.html.twig
-
 services:
     magento:
         class: '%magento.factory.class%'
@@ -17,7 +15,7 @@ services:
         class: '%magento.collector.class%'
         arguments: ['@magento.logger']
         tags:
-            - { name: 'data_collector', template: '%magento.profiler.template%', id: 'magento' }
+            - { name: 'data_collector', template: '@Magento/Collector/profiler.html.twig', id: 'magento' }
 
     magento.logger:
         class: '%magento.logger.class%'
