@@ -13,8 +13,7 @@
 
 namespace Smalot\MagentoBundle\Event;
 
-use Smalot\Magento\RemoteAdapterInterface;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Class AbstractEvent
