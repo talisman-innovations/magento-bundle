@@ -67,7 +67,7 @@ class RemoteAdapter extends BaseRemoteAdapter
     /**
      * @param EventDispatcherInterface $dispatcher
      *
-     * @return $this
+     * @return RemoteAdapter
      */
     public function setDispatcher(EventDispatcherInterface $dispatcher)
     {
@@ -79,11 +79,13 @@ class RemoteAdapter extends BaseRemoteAdapter
     /**
      * @param LoggerInterface $logger
      *
-     * @return $this
+     * @return RemoteAdapter
      */
     public function setLogger(LoggerInterface $logger)
     {
         $this->logger = new Logger($logger);
+
+        return $this;
     }
 
     /**
@@ -99,7 +101,7 @@ class RemoteAdapter extends BaseRemoteAdapter
         $apiKey = (null === $apiKey ? $this->apiKey : $apiKey);
 
         $event = new SecurityEvent($this, $apiUser, $apiKey);
-        $this->dispatcher->dispatch(MagentoEvents::PRE_LOGIN, $event);
+        $this->dispatcher->dispatch($event, MagentoEvents::PRE_LOGIN);
 
         // Retrieve ApiUser and ApiKey from SecurityEvent to allow override mechanism.
         $apiUser = $event->getApiUser();
@@ -108,7 +110,7 @@ class RemoteAdapter extends BaseRemoteAdapter
         $this->sessionId = $this->soapClient->login($apiUser, $apiKey);
 
         $event = new SecurityEvent($this, $apiUser, $apiKey, $this->sessionId);
-        $this->dispatcher->dispatch(MagentoEvents::POST_LOGIN, $event);
+        $this->dispatcher->dispatch($event, MagentoEvents::POST_LOGIN);
 
         return isset($this->sessionId);
     }
@@ -119,7 +121,7 @@ class RemoteAdapter extends BaseRemoteAdapter
     public function logout()
     {
         $event = new SecurityEvent($this, null, null, $this->sessionId);
-        $this->dispatcher->dispatch(MagentoEvents::PRE_LOGOUT, $event);
+        $this->dispatcher->dispatch($event, MagentoEvents::PRE_LOGOUT);
 
         if ($this->sessionId === null) {
             return false;
@@ -128,7 +130,7 @@ class RemoteAdapter extends BaseRemoteAdapter
         $this->soapClient->endSession($this->sessionId);
 
         $event = new SecurityEvent($this, null, null, $this->sessionId);
-        $this->dispatcher->dispatch(MagentoEvents::POST_LOGOUT, $event);
+        $this->dispatcher->dispatch($event, MagentoEvents::POST_LOGOUT);
 
         $this->sessionId = null;
         return true;
@@ -153,14 +155,14 @@ class RemoteAdapter extends BaseRemoteAdapter
             }
 
             $event = new SingleCallTransportEvent($this, $action);
-            $this->dispatcher->dispatch(MagentoEvents::PRE_SINGLE_CALL, $event);
+            $this->dispatcher->dispatch($event, MagentoEvents::PRE_SINGLE_CALL);
             $action = $event->getAction();
 
             $result = $this->soapClient->call($this->sessionId, $action->getMethod(), $action->getArguments());
             $this->logCall($action);
 
             $event = new SingleCallTransportEvent($this, $action, $result);
-            $this->dispatcher->dispatch(MagentoEvents::POST_SINGLE_CALL, $event);
+            $this->dispatcher->dispatch($event, MagentoEvents::POST_SINGLE_CALL);
             $result = $event->getResult();
 
             return $result;
@@ -188,7 +190,7 @@ class RemoteAdapter extends BaseRemoteAdapter
             $this->checkSecurity();
 
             $event = new MultiCallTransportEvent($this, $queue);
-            $this->dispatcher->dispatch(MagentoEvents::PRE_MULTI_CALL, $event);
+            $this->dispatcher->dispatch($event, MagentoEvents::PRE_MULTI_CALL);
             $queue = $event->getQueue();
 
             $actions = $this->getActions($queue);
@@ -196,7 +198,7 @@ class RemoteAdapter extends BaseRemoteAdapter
             $results = $this->soapClient->multiCall($this->sessionId, $actions);
 
             $event = new MultiCallTransportEvent($this, $queue, $results);
-            $this->dispatcher->dispatch(MagentoEvents::POST_MULTI_CALL, $event);
+            $this->dispatcher->dispatch($event, MagentoEvents::POST_MULTI_CALL);
             $queue = $event->getQueue();
             $results = $event->getResults();
 
@@ -226,15 +228,14 @@ class RemoteAdapter extends BaseRemoteAdapter
             $url = $sent['Host'] . $url;
         }
 
-        $bodyRecv = $this->client->__getLastResponse();
-        $headersRecv = $this->client->__getLastResponseHeaders();
+        $bodyRecv = $this->soapClient->__getLastResponse();
+        $headersRecv = $this->soapClient->__getLastResponseHeaders();
         $headers = explode("\r\n", $headersRecv);
         $temp = explode(" ", array_shift($headers));
         $http_code = $temp[1];
         $recv = $this->parseHeaders($headers);
 
         $this->logger->log($method, $url, null, $sent, $bodySent, $http_code, $recv, $bodyRecv);
-
     }
 
     /**
@@ -253,6 +254,5 @@ class RemoteAdapter extends BaseRemoteAdapter
 
         return $parsedHeaders;
     }
-
 
 }

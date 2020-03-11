@@ -44,7 +44,7 @@ class MagentoDataCollector extends DataCollector
      * @param Response   $response
      * @param \Exception $exception
      */
-    public function collect(Request $request, Response $response, \Exception $exception = null)
+    public function collect(Request $request, Response $response, \Throwable $exception = null)
     {
         if ($this->logger) {
             $this->data = array('magento' => $this->logger->getCalls());
