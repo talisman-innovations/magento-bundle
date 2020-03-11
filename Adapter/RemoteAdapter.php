@@ -219,7 +219,7 @@ class RemoteAdapter extends BaseRemoteAdapter
         if (!$this->logger) {
             return;
         }
-        
+
         $bodySent = $this->soapClient->__getLastRequest();
         $headersSent = $this->soapClient->__getLastRequestHeaders();
         $headers = explode("\r\n", $headersSent);
