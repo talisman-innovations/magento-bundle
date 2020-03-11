@@ -2,6 +2,7 @@
     "name": "smalot/magento-bundle",
     "description": "A Symfony2 wrapper for the Magento Soap Client API",
     "license": "MIT",
+    "type":  "symfony-bundle",
     "authors": [
         {
             "name": "Sebastien Malot",
