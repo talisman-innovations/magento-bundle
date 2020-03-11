@@ -216,6 +216,10 @@ class RemoteAdapter extends BaseRemoteAdapter
      */
     protected function logCall(ActionInterface $action)
     {
+        if (!$this->logger) {
+            return;
+        }
+        
         $bodySent = $this->soapClient->__getLastRequest();
         $headersSent = $this->soapClient->__getLastRequestHeaders();
         $headers = explode("\r\n", $headersSent);
