@@ -159,7 +159,7 @@ class RemoteAdapter extends BaseRemoteAdapter
             $action = $event->getAction();
 
             $result = $this->soapClient->call($this->sessionId, $action->getMethod(), $action->getArguments());
-            $this->logCall($action);
+            $this->logCall();
 
             $event = new SingleCallTransportEvent($this, $action, $result);
             $this->dispatcher->dispatch($event, MagentoEvents::POST_SINGLE_CALL);
@@ -212,15 +212,20 @@ class RemoteAdapter extends BaseRemoteAdapter
     }
 
     /**
-     * @param ActionInterface $action
+     *
      */
-    protected function logCall(ActionInterface $action)
+    protected function logCall()
     {
         if (!$this->logger) {
             return;
         }
 
         $bodySent = $this->soapClient->__getLastRequest();
+
+        if (!$bodySent) {
+            return;
+        }
+
         $headersSent = $this->soapClient->__getLastRequestHeaders();
         $headers = explode("\r\n", $headersSent);
         $temp = explode(" ", array_shift($headers));
